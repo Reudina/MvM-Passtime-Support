@@ -2,14 +2,6 @@
 //			My Descent into madness as i remake					  //
 //					the Passtime logic							  //
 ////////////////////////////////////////////////////////////////////
-//					        ReadMe
-//
-//
-//
-//
-//
-//
-////////////////////////////////////////////////////////////////////
 printl(__FILE__ + " has loaded");
 ////////////////////////////////////////////////////////////////////
 PrecacheModel("materials/passtime/hud/passtime_ball_reticle_passlock_custom.vmt")
@@ -107,7 +99,7 @@ function spawnptbomb(ptbspawn_pos, ptb_team, ptb_lockcol) //Spawn the PTBomb
 	AddThinkToEnt(passtime_bomb_reti1, "followbomb")
 	AddThinkToEnt(passtime_bomb_reti2, "followbomb")
 
-	function followbomb()
+	::followbomb <- function()
 	{
 		passtime_bomb_reti1.KeyValueFromVector("origin", psuedo_passtime_bomb.GetCenter())
 		passtime_bomb_reti2.KeyValueFromVector("origin", psuedo_passtime_bomb.GetCenter())
@@ -166,9 +158,7 @@ function testforvalidcarrier()  //ensure carrier can pick up bomb
 
 function equipptbomb() //equip bomb
 {
-	passtime_bomb_reti1.Destroy()
-	passtime_bomb_reti2.Destroy()
-	DoEntFire("ptbomb", "kill", "", -1, null, null)
+	killptbomb()
 	
 	NetProps.SetPropEntity(passtime_bomb_glow, "m_hTarget", ptbombholder)
 	GivePlayerPTBallWeapon(ptbombholder, "tf_weapon_grapplinghook", 1152)
@@ -254,7 +244,23 @@ function OnGameEvent_player_disconnect(params) // drop bomb on player disconnect
 	else{}
 }
 
-	
+function killptbomb() //generic func to kill the bomb and associeted
+{
+	if(psuedo_passtime_bomb.exists)
+	{
+		AddThinkToEnt(passtime_bomb_reti1, "null")
+		AddThinkToEnt(passtime_bomb_reti2, "null")
+		passtime_bomb_reti1.Destroy()
+		passtime_bomb_reti2.Destroy()
+		DoEntFire("ptbomb", "kill", "", -1, null, null)
+	}
+}
+
+function RespawnPTBomb() //called manually or if a bomb explodes(hits target or out of bounds)
+{
+	killptbomb()
+	spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
+}	
 
 
 
