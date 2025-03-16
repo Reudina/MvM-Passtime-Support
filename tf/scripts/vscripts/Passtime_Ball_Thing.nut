@@ -262,10 +262,10 @@ function RespawnPTBomb() //called manually or if a bomb explodes(hits target or 
 	spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
 }	
 
-
-
-
-
+function PTBScore()
+{
+	
+}
 
 
 __CollectGameEventCallbacks(this)
