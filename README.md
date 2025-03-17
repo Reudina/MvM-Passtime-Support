@@ -6,6 +6,8 @@ Capabilities:
 .Can Be Picked Up, Droped, and Thrown.  
 .Holding The Ball Prevents Weapon Switch(And Attacking)  
 .Relevant Effects Present  
+.Bomb Will Be Dropped On PLayer Death, Disconnect Or In "Illegal" Areas.  
+.Bomb Can Respawn If Out Of Bounds.  
 .Can Be Assigned To Team Red or Blu (Function Of The Ball Differs Depending On Team)  
 
 ToDo:
