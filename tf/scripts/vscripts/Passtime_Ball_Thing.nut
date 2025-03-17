@@ -26,14 +26,40 @@ function resetvalues()  //failsafe to reset any values that would fuck up things
 function OnGameEvent_teamplay_round_start(params) // call functions on round start
 {
 	resetvalues()
+	tempspawnball()
 	checkforptbspawn()
 	
+
 	if (arewegood == true)
 	{
 		spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)	
 		spawnkeylogic(ptbtc_as_str)
 	}	
 }
+
+///////////////TEMP//////////////////////
+function tempspawnball()
+{
+	SpawnEntityFromTable("info_passtime_ball_spawn",
+	{
+		targetname = "ipbsspawn"
+		TeamNum = 2
+		origin = Vector(-1720, 0, -60)
+	})
+
+	::yaya <- SpawnEntityFromTable("trigger_multiple",
+	{
+		targetname = "yyyiii"
+		spawnflags = 8
+		Origin = Vector(-1290, 0, -62)
+
+		"OnStartTouch#1" : "!selfCallScriptFunctionPTBHitTarget-1-1"
+	})
+	yaya.SetSize(Vector(-100, -100, -100), Vector(100, 100, 100))
+	yaya.SetSolid(2)
+
+}
+////////////////////////////////////
 
 function checkforptbspawn() // Ensure that a valid "Info_Passtime_ball_Spawn" exists
 {
@@ -53,51 +79,57 @@ function checkforptbspawn() // Ensure that a valid "Info_Passtime_ball_Spawn" ex
 
 function spawnptbomb(ptbspawn_pos, ptb_team, ptb_lockcol) //Spawn the PTBomb
 {
-	::psuedo_passtime_bomb <- SpawnEntityFromTable("passtime_ball", 
+	if(psuedo_passtime_bomb.IsValid()!= true)
 	{
-		targetname	= "ptbomb"
-		Origin 		= ptbspawn_pos
-		TeamNum 	= ptb_team
-	})
+		::psuedo_passtime_bomb <- SpawnEntityFromTable("passtime_ball", 
+		{
+			targetname	= "ptbomb"
+			Origin 		= ptbspawn_pos
+			TeamNum 	= ptb_team
+		})
 
-	local passtime_bomb_trigger = SpawnEntityFromTable("trigger_Multiple"
-	{
-		targetname 	= "ptbombtrigger"
-		Origin 		= ptbspawn_pos
-		spawnflags	= 1
-		StartDisabled = true
-		
-		
-		"OnSTartTouch#1" : "!activatorCallScriptFunctiontestforvalidcarrier-1-1"
-	})
+		local passtime_bomb_trigger = SpawnEntityFromTable("trigger_Multiple"
+		{
+			targetname 	= "ptbombtrigger"
+			Origin 		= ptbspawn_pos
+			spawnflags	= 1
+			StartDisabled = true
+			
+			
+			"OnSTartTouch#1" : "!activatorCallScriptFunctiontestforvalidcarrier-1-1"
+		})
 
-	::passtime_bomb_reti1 <- SpawnEntityFromTable("env_sprite_oriented"
-	{
-		targetname 	= "reticle1"
-		model 		= "passtime/hud/passtime_ball_reticle_piece_1.vmt"
-		spawnflags  = 1
-		origin 		= ptbspawn_pos
-		scale 		= 0.00001
-		rendercolor = ptb_lockcol
-	})
+		::passtime_bomb_reti1 <- SpawnEntityFromTable("env_sprite_oriented"
+		{
+			targetname 	= "reticle1"
+			model 		= "passtime/hud/passtime_ball_reticle_piece_1.vmt"
+			spawnflags  = 1
+			origin 		= ptbspawn_pos
+			scale 		= 0.00001
+			rendercolor = ptb_lockcol
+		})
 
-	::passtime_bomb_reti2 <- SpawnEntityFromTable("env_sprite_oriented"
-	{
-		targetname 	= "reticle2"
-		model 		= "passtime/hud/passtime_ball_reticle_piece_2.vmt"
-		spawnflags  = 1
-		origin 		= ptbspawn_pos
-		scale 		= 0.00001
-		rendercolor = ptb_lockcol
-	})
+		::passtime_bomb_reti2 <- SpawnEntityFromTable("env_sprite_oriented"
+		{
+			targetname 	= "reticle2"
+			model 		= "passtime/hud/passtime_ball_reticle_piece_2.vmt"
+			spawnflags  = 1
+			origin 		= ptbspawn_pos
+			scale 		= 0.00001
+			rendercolor = ptb_lockcol
+		})
 
-	passtime_bomb_trigger.AcceptInput("SetParent", "ptbomb", "", null)
-	EntFireByHandle(passtime_bomb_trigger, "Enable", "", 2, null, null)
-	passtime_bomb_trigger.SetSize(Vector(-25,-25,-25), Vector(25,25,25))
-	passtime_bomb_trigger.SetSolid(2)
+		NetProps.SetPropEntity(passtime_bomb_glow, "m_hTarget", psuedo_passtime_bomb)
 
-	AddThinkToEnt(passtime_bomb_reti1, "followbomb")
-	AddThinkToEnt(passtime_bomb_reti2, "followbomb")
+		passtime_bomb_trigger.AcceptInput("SetParent", "ptbomb", "", null)
+		EntFireByHandle(passtime_bomb_trigger, "Enable", "", 2, null, null)
+		passtime_bomb_trigger.SetSize(Vector(-25,-25,-25), Vector(25,25,25))
+		passtime_bomb_trigger.SetSolid(2)
+
+		AddThinkToEnt(passtime_bomb_reti1, "followbomb")
+		AddThinkToEnt(passtime_bomb_reti2, "followbomb")
+	}
+	
 
 	::followbomb <- function()
 	{
@@ -186,8 +218,9 @@ function holderinputthink()	// read buttons
 	if (buttons_pressed & Constants.FButtons.IN_ATTACK){}
 
 	if (buttons_released & Constants.FButtons.IN_ATTACK){dropptbomb(true)}
+	if (buttons_released & Constants.FButtons.IN_ATTACK3){}
 
-	if (ptbombholder.IsStealthed() == true){dropptbomb(false)}
+	//if (ptbombholder.IsStealthed() == true){dropptbomb(false)}
 
 	buttons_last = buttons
 	return -1
@@ -244,16 +277,33 @@ function OnGameEvent_player_disconnect(params) // drop bomb on player disconnect
 	else{}
 }
 
-function killptbomb() //generic func to kill the bomb and associeted
+function killptbomb() //generic function to kill the bomb and associeted
 {
-	if(psuedo_passtime_bomb.exists)
+	if(psuedo_passtime_bomb.IsValid())
 	{
 		AddThinkToEnt(passtime_bomb_reti1, "null")
 		AddThinkToEnt(passtime_bomb_reti2, "null")
 		passtime_bomb_reti1.Destroy()
 		passtime_bomb_reti2.Destroy()
-		DoEntFire("ptbomb", "kill", "", -1, null, null)
+		psuedo_passtime_bomb.Destroy()
 	}
+}
+
+function PTBHitTarget()
+{
+	SpawnEntityFromTable("tf_generic_bomb", 
+	{
+		targetname = "targetdetonate"
+		Origin = psuedo_passtime_bomb.GetOrigin()
+		damage = 100
+		radius = 50
+		health = 1
+		explode_particle = "rd_robot_explosion"
+		sound = "weapons/loose_cannon_explode.wav"
+		friendlyfire = 1
+	})
+	DoEntFire("targetdetonate", "detonate", "", 0, null, null)
+	RespawnPTBomb()
 }
 
 function RespawnPTBomb() //called manually or if a bomb explodes(hits target or out of bounds)
@@ -262,20 +312,12 @@ function RespawnPTBomb() //called manually or if a bomb explodes(hits target or 
 	spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
 }	
 
-function PTBScore()
-{
-	
-}
-
-
 __CollectGameEventCallbacks(this)
 
 
 //////////////////////////////////////////////
 /////Scrapped due to too many issues//////////
 //////////////////////////////////////////////
-
-
 
 // function spawnpasslock()
 // {
