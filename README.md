@@ -1,5 +1,18 @@
 # MvM-Passtime-Support
-ReWorked Passtime To Allow Spawning Of The Passtime Ball In MVM Missions (Without Crashing)
+Re-Made Fundamental Aspects Of The Passtime_Ball Entity with VScript To Allow It To Function In MvM Missions (Without Crashing)
+
+Capabilities:  
+.Ball Can Be Spawned Anywhere, At Any Time (Within Reason)  
+.Can Be Picked Up, Droped, and Thrown.  
+.Holding The Ball Prevents Weapon Switch(And Attacking)  
+.Relevant Effects Present  
+.Bomb Will Be Dropped On PLayer Death, Disconnect Or In "Illegal" Areas.  
+.Bomb Can Respawn If Out Of Bounds.  
+.Can Be Assigned To Team Red or Blu (Function Of The Ball Differs Depending On Team)  
+
+ToDo:
+."Passlock" to indicate where the ball will land. (works but glitchy)  
+.Allow Ball As Replacement For Bomb In Reverse Missions  
 
 # Requirements
 Custom models included with the Download are required.
