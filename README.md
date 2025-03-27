@@ -36,3 +36,18 @@ Load the VScript like you would any other VScript With:
     }  
 ///////////////////////////////////////////////////////////////  
 Currently requires wave reload to function if it is the first time being run on a map, plan to fix at a later date.  
+
+# Useful Functions To Call
+--- PTBHitTarget() ---   
+: Call This To Detonate The Bomb And/Or Respawn It.     
+  
+--- dropptbomb(false) ---   
+: Call This With The (false) Param To Cause Holder To Drop The Ball.    
+
+--- dropptbomb(true) ---   
+: Call This With The (True) Param To Cause Holder To Throw The Ball.    
+
+--- spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)---   
+Call This To Spawn The Ball. Always Use The Above Params, Do Not Change Them.  
+
+
