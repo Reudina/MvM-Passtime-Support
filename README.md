@@ -20,7 +20,7 @@ Load the VScript like you would any other VScript With:
         `Action RunScriptCode`    
         `param "IncludeScript(``passtime_ball_thing.nut``, getroottable())"`    
     `}`   
- *Only Include In Wave 1  
+ *Only required in 1 wave    
 
  Below Functions can be called with `DoEntFire`  
  Eg. `DoEntFire(``worldspawn``, ``RunScriptCode``, ``InitiateSpawn()``, 0, null, null)`
