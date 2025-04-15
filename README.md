@@ -1,6 +1,10 @@
 # MvM-Passtime-Support
 Re-Made Fundamental Aspects Of The Passtime_Ball Entity with VScript To Allow It To Function In MvM Missions (Without Crashing)
 
+#Bugs  
+.disconnecting with the ball breaks everything  
+.reseting the wave while the ball is held dosent remove the required thinks  
+
 # How To Use
 Simply add, via Hammer, PointTemplates(Rafmod) or VScript, An "Info_Passtime_Ball_Spawn" to the map.  
 
