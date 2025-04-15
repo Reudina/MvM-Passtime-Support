@@ -4,16 +4,15 @@
 ////////////////////////////////////////////////////////////////////
 printl(__FILE__ + " has loaded");
 ////////////////////////////////////////////////////////////////////
-PrecacheModel("materials/passtime/hud/passtime_ball_reticle_passlock_custom.vmt")
-PrecacheModel("materials/passtime/hud/passtime_ball_reticle_piece_1_custom.vmt")
 
 //globals
 ::PlayerManager <- Entities.FindByClassname(null, "tf_player_manager")
 ::GetPlayerUserID <- function(player){return NetProps.GetPropIntArray(PlayerManager, "m_iUserID", player.entindex())}
-
+::ErrorHeader <- "\x07FF3F3F //////////" + __FILE__ + "////////// \n"
 ///////////////////////////////////////////////////////////////////////
 //////////////////   Pre Game Setup ///////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+
 function resetvalues()  //failsafe to reset any values that would fuck up things if not reset
 {
 	::ptbombholder		<- null
@@ -22,114 +21,110 @@ function resetvalues()  //failsafe to reset any values that would fuck up things
 	::ptbtc_as_str		<- "0, 0, 0, 0"
 	::arewegood			<- false
 }
-
-function OnGameEvent_teamplay_round_start(params) // call functions on round start
+function InitiateFirstSpawn()
 {
 	resetvalues()
-	tempspawnball()
 	checkforptbspawn()
-	
+	if (arewegood == true){spawnkeylogic(ptbtc_as_str)}
+}
+
+function InitiateSpawn() 
+{
+	resetvalues()
+	checkforptbspawn()
+	//DoEntFire("worldspawn", "RunScriptCode", "checkforptbspawn()", 2, null, null)
 
 	if (arewegood == true)
 	{
-		spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)	
-		spawnkeylogic(ptbtc_as_str)
-	}	
+		spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)		
+	}
 }
 
 ///////////////TEMP//////////////////////
-function tempspawnball()
+function spawnptspawn()
 {
-	SpawnEntityFromTable("info_passtime_ball_spawn",
-	{
-		targetname = "ipbsspawn"
-		TeamNum = 2
-		origin = Vector(-1720, 0, -60)
-	})
+    SpawnEntityFromTable("info_passtime_ball_spawn",
+    {
+        targetname = "ipbsspawn"
+        TeamNum = 2
+        Origin = Vector(0, 0, 0) //-6336, -112, 45
+        StartDisabled = 0
 
-	::yaya <- SpawnEntityFromTable("trigger_multiple",
-	{
-		targetname = "yyyiii"
-		spawnflags = 8
-		Origin = Vector(-1290, 0, -62)
-
-		"OnStartTouch#1" : "!selfCallScriptFunctionPTBHitTarget-1-1"
-	})
-	yaya.SetSize(Vector(-100, -100, -100), Vector(100, 100, 100))
-	yaya.SetSolid(2)
-
+    })
 }
 ////////////////////////////////////
 
 function checkforptbspawn() // Ensure that a valid "Info_Passtime_ball_Spawn" exists
 {
-	local validptbspawn = Entities.FindByName(null, "ipbsspawn")
-	if (validptbspawn) 
-	{
-		defaultbombspawn = validptbspawn.GetOrigin() 
-		ptbteamcolour	 = validptbspawn.GetTeam()
-		if(ptbteamcolour == 3){ptbtc_as_str = "151, 200, 249, 255"}
-		else if(ptbteamcolour == 2){ptbtc_as_str = "249, 61, 61, 255"}
-		else{ptbtc_as_str = "0, 0, 0, 0"}
-		arewegood		 = true
-	}
+	local validptbspawn = Entities.FindByName(null, "ipbsspawn*")
+	local enabledptbspawn = NetProps.GetPropInt(validptbspawn, "m_bDisabled")
+    if (validptbspawn && validptbspawn.GetClassname() == "info_passtime_ball_spawn")
+    {
+        if (enabledptbspawn == 0)
+        {
+            defaultbombspawn = validptbspawn.GetOrigin()
+            ptbteamcolour	 = validptbspawn.GetTeam()
+            if(ptbteamcolour == 3){ptbtc_as_str = "125 168 196 255"}
+            else if(ptbteamcolour == 2){ptbtc_as_str = "189 59 59 255"}
+            else{ptbtc_as_str = "0, 0, 0, 0"}
+            arewegood		 = true
+        }
+        else {ClientPrint(null, 3, ErrorHeader + "\x07FF3F3F Found Valid 'Info_Passtime_Ball_Spawn', But It's Not Enabled")}
 
-	else{ClientPrint(null, 3, "\x07FF3F3F Failed To Find Valid 'Info_Passtime_Ball_Spawn'")}
+    }
+	else{ClientPrint(null, 3, ErrorHeader + "\x07FF3F3F Failed To Find Valid 'Info_Passtime_Ball_Spawn'")}
 }
 
 function spawnptbomb(ptbspawn_pos, ptb_team, ptb_lockcol) //Spawn the PTBomb
 {
-	if(psuedo_passtime_bomb.IsValid()!= true)
+
+	::psuedo_passtime_bomb <- SpawnEntityFromTable("passtime_ball",
 	{
-		::psuedo_passtime_bomb <- SpawnEntityFromTable("passtime_ball", 
-		{
-			targetname	= "ptbomb"
-			Origin 		= ptbspawn_pos
-			TeamNum 	= ptb_team
-		})
+		targetname	= "ptbomb"
+		Origin 		= ptbspawn_pos
+		TeamNum 	= ptb_team
+	})
 
-		local passtime_bomb_trigger = SpawnEntityFromTable("trigger_Multiple"
-		{
-			targetname 	= "ptbombtrigger"
-			Origin 		= ptbspawn_pos
-			spawnflags	= 1
-			StartDisabled = true
-			
-			
-			"OnSTartTouch#1" : "!activatorCallScriptFunctiontestforvalidcarrier-1-1"
-		})
+	local passtime_bomb_trigger = SpawnEntityFromTable("trigger_Multiple"
+	{
+		targetname 	= "ptbombtrigger"
+		Origin 		= ptbspawn_pos
+		spawnflags	= 1
+		StartDisabled = true
 
-		::passtime_bomb_reti1 <- SpawnEntityFromTable("env_sprite_oriented"
-		{
-			targetname 	= "reticle1"
-			model 		= "passtime/hud/passtime_ball_reticle_piece_1.vmt"
-			spawnflags  = 1
-			origin 		= ptbspawn_pos
-			scale 		= 0.00001
-			rendercolor = ptb_lockcol
-		})
 
-		::passtime_bomb_reti2 <- SpawnEntityFromTable("env_sprite_oriented"
-		{
-			targetname 	= "reticle2"
-			model 		= "passtime/hud/passtime_ball_reticle_piece_2.vmt"
-			spawnflags  = 1
-			origin 		= ptbspawn_pos
-			scale 		= 0.00001
-			rendercolor = ptb_lockcol
-		})
+		"OnSTartTouch#1" : "!activatorCallScriptFunctiontestforvalidcarrier-1-1"
+	})
 
-		NetProps.SetPropEntity(passtime_bomb_glow, "m_hTarget", psuedo_passtime_bomb)
+	::passtime_bomb_reti1 <- SpawnEntityFromTable("env_sprite_oriented"
+	{
+		targetname 	= "reticle1"
+		model 		= "passtime/hud/passtime_ball_reticle_piece_1.vmt"
+		spawnflags  = 1
+		origin 		= ptbspawn_pos
+		scale 		= 0.00001
+		rendercolor = ptb_lockcol
+	})
 
-		passtime_bomb_trigger.AcceptInput("SetParent", "ptbomb", "", null)
-		EntFireByHandle(passtime_bomb_trigger, "Enable", "", 2, null, null)
-		passtime_bomb_trigger.SetSize(Vector(-25,-25,-25), Vector(25,25,25))
-		passtime_bomb_trigger.SetSolid(2)
+	::passtime_bomb_reti2 <- SpawnEntityFromTable("env_sprite_oriented"
+	{
+		targetname 	= "reticle2"
+		model 		= "passtime/hud/passtime_ball_reticle_piece_2.vmt"
+		spawnflags  = 1
+		origin 		= ptbspawn_pos
+		scale 		= 0.00001
+		rendercolor = ptb_lockcol
+	})
 
-		AddThinkToEnt(passtime_bomb_reti1, "followbomb")
-		AddThinkToEnt(passtime_bomb_reti2, "followbomb")
-	}
-	
+	passtime_bomb_trigger.AcceptInput("SetParent", "ptbomb", "", null)
+	EntFireByHandle(passtime_bomb_trigger, "Enable", "", 2, null, null)
+	passtime_bomb_trigger.SetSize(Vector(-25,-25,-25), Vector(25,25,25))
+	passtime_bomb_trigger.SetSolid(2)
+
+	AddThinkToEnt(passtime_bomb_reti1, "followbomb")
+	AddThinkToEnt(passtime_bomb_reti2, "followbomb")
+
+	NetProps.SetPropEntity(passtime_bomb_glow, "m_hTarget", psuedo_passtime_bomb)
 
 	::followbomb <- function()
 	{
@@ -148,10 +143,10 @@ function spawnptbomb(ptbspawn_pos, ptb_team, ptb_lockcol) //Spawn the PTBomb
 
 function spawnkeylogic(glowcol) //spawn a tf_glow
 {
-	::passtime_bomb_glow <- SpawnEntityFromTable("tf_glow" 
+	::passtime_bomb_glow <- SpawnEntityFromTable("tf_glow"
 	{
 		targetname = "ptbombglow"
-		target = "ptbomb"
+		target = "bignet"
 		GlowColor = glowcol
 	})
 }
@@ -164,7 +159,7 @@ function spawnkeylogic(glowcol) //spawn a tf_glow
     NetProps.SetPropBool(ptballweapon, "m_bValidatedAttachedEntity", true)
     ptballweapon.SetTeam(player.GetTeam())
     ptballweapon.DispatchSpawn()
-    	
+
     player.Weapon_Equip(ptballweapon)
     player.Weapon_Switch(ptballweapon)
 
@@ -177,10 +172,10 @@ function spawnkeylogic(glowcol) //spawn a tf_glow
 function testforvalidcarrier()  //ensure carrier can pick up bomb
 {
 	local probablytheholder = Entities.FindByClassnameNearest("player", psuedo_passtime_bomb.GetCenter(), 100)
-	
+
 	if(probablytheholder.GetTeam() == ptbteamcolour)
 	{
-		if (probablytheholder.IsStealthed() == false) 
+		if (probablytheholder.IsStealthed() == false)
 		{
 			ptbombholder = probablytheholder
 			equipptbomb()
@@ -191,18 +186,17 @@ function testforvalidcarrier()  //ensure carrier can pick up bomb
 function equipptbomb() //equip bomb
 {
 	killptbomb()
-	
+
 	NetProps.SetPropEntity(passtime_bomb_glow, "m_hTarget", ptbombholder)
 	GivePlayerPTBallWeapon(ptbombholder, "tf_weapon_grapplinghook", 1152)
 	ptbombholder.AddCustomAttribute("disable weapon switch", 1, -1 )
 	ptbombholder.AddCustomAttribute("no_attack", 1, -1 )
 	ptbombholder.AddCustomAttribute("cannot disguise", 1, -1 )
 
-	
 	ptbombholder.ValidateScriptScope()
 	ptbombholder.GetScriptScope().buttons_last <- 0
 	AddThinkToEnt(ptbombholder, "holderinputthink")
-	
+
 	ClientPrint(null, 3, "\x07dcc037" + NetProps.GetPropString(ptbombholder, "m_szNetname") + " Has \x04 Picked Up \x07dcc037 The Bomb")
 }
 
@@ -212,15 +206,13 @@ function holderinputthink()	// read buttons
 	local buttons_changed = buttons_last ^ buttons
 	local buttons_pressed = buttons_changed & buttons
 	local buttons_released = buttons_changed & (~buttons)
-	
+
 	if (buttons_pressed & Constants.FButtons.IN_RELOAD){dropptbomb(false)}
-	
+
 	if (buttons_pressed & Constants.FButtons.IN_ATTACK){}
 
 	if (buttons_released & Constants.FButtons.IN_ATTACK){dropptbomb(true)}
 	if (buttons_released & Constants.FButtons.IN_ATTACK3){}
-
-	//if (ptbombholder.IsStealthed() == true){dropptbomb(false)}
 
 	buttons_last = buttons
 	return -1
@@ -261,133 +253,64 @@ function throwptbomb() //throw bomb
 //////////////////////////////////////////////////////////////////////////
 ////////////////		Game Events And Triggers        //////////////////
 /////////////////////////////////////////////////////////////////////////
-function OnGameEvent_player_death(params) //drop bomb on holder death
-{
-	if (params.userid == GetPlayerUserID(ptbombholder))
+::PTBEvents <- {
+	function OnGameEvent_player_death(params) //drop bomb on holder death
 	{
-		if (params.death_flags & 32){}
-		else{dropptbomb(false)}
+		if (params.userid == GetPlayerUserID(ptbombholder))
+		{
+			if (params.death_flags & 32){}
+			else{dropptbomb(false)}
+		}
+		else{}
 	}
-	else{}
-}
 
-function OnGameEvent_player_disconnect(params) // drop bomb on player disconnect
-{
-	if (params.userid == GetPlayerUserID(ptbombholder)){dropptbomb(false)}
-	else{}
-}
-
-function killptbomb() //generic function to kill the bomb and associeted
-{
-	if(psuedo_passtime_bomb.IsValid())
+	function OnGameEvent_player_disconnect(params) // drop bomb on player disconnect
 	{
-		AddThinkToEnt(passtime_bomb_reti1, "null")
-		AddThinkToEnt(passtime_bomb_reti2, "null")
-		passtime_bomb_reti1.Destroy()
-		passtime_bomb_reti2.Destroy()
-		psuedo_passtime_bomb.Destroy()
+		if (params.userid == GetPlayerUserID(ptbombholder)){dropptbomb(false)}
+		else{}
 	}
-}
 
-function PTBHitTarget()
-{
-	SpawnEntityFromTable("tf_generic_bomb", 
-	{
-		targetname = "targetdetonate"
-		Origin = psuedo_passtime_bomb.GetOrigin()
-		damage = 100
-		radius = 50
-		health = 1
-		explode_particle = "rd_robot_explosion"
-		sound = "weapons/loose_cannon_explode.wav"
-		friendlyfire = 1
-	})
-	DoEntFire("targetdetonate", "detonate", "", 0, null, null)
-	RespawnPTBomb()
-}
-
-function RespawnPTBomb() //called manually or if a bomb explodes(hits target or out of bounds)
-{
-	killptbomb()
-	spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
-}	
-
-__CollectGameEventCallbacks(this)
-
-
-//////////////////////////////////////////////
-/////Scrapped due to too many issues//////////
-//////////////////////////////////////////////
-
-// function spawnpasslock()
-// {
-// 	::ptbombpasslockparent <- SpawnEntityFromTable("info_teleport_destination"
-// 	{
-// 		targetname = "psupasslockparent"
-// 		origin = Vector(0, 0, 0)
-// 	})
-
-// 	::ptbombpasslock <- SpawnEntityFromTable("env_sprite_oriented"
-// 	{
-// 		targetname = "psupasslock"
-// 		model 		= "materials/passtime/hud/passtime_ball_reticle_passlock_custom.vmt"
-// 		origin		=Vector(-1600,0,-82)
-// 		angles 		= Vector(90, 0, 0)
-// 		scale 		= 0.00001
-// 		spawnflags	= 1
-// 	})
-
-// 	::ptbombpasslockcircle <- SpawnEntityFromTable("env_sprite_oriented"
-// 	{
-// 		targetname = "psupasslockcircle"
-// 		model 		= "materials/passtime/hud/passtime_ball_reticle_piece_1_custom.vmt"
-// 		origin		= Vector(-1600,0,-82)
-// 		angles 		= Vector(90, 0, 0)
-// 		scale 		= 0.00001
-// 		spawnflags	= 1
-// 	})
-// 	ptbombpasslock.AcceptInput("SetParent", "psupasslockparent", null, null)
-// 	ptbombpasslockcircle.AcceptInput("SetParent", "psupasslock", null, null)
-
-// 	function rotatecircle()
-// 	{
-// 		local currentrotation = ptbombpasslockcircle.GetAbsAngles()
-// 		ptbombpasslockcircle.SetAbsAngles(currentrotation + QAngle(0, 1, 0)) 
+	function OnGameEvent_mvm_wave_complete(params){killptbomb()}
+	function OnGameEvent_mvm_wave_Failed(params){killptbomb()}
+	function OnGameEvent_teamplay_round_win(params){killptbomb()}
 		
-// 		return -1
-// 	}
-// 	AddThinkToEnt(ptbombpasslockcircle, "rotatecircle")
-// }
+	function killptbomb() //generic function to kill the bomb and associeted
+	{
+		if(psuedo_passtime_bomb.IsValid())
+		{
+			AddThinkToEnt(passtime_bomb_reti1, "null")
+			AddThinkToEnt(passtime_bomb_reti2, "null")
+			passtime_bomb_reti1.Destroy()
+			passtime_bomb_reti2.Destroy()
+			psuedo_passtime_bomb.Destroy()
+		}
+	}
 
-//spawnpasslock()
+	function PTBHitTarget() //kills and respawns bomb. call this function when detonating bomb.
+	{
+		SpawnEntityFromTable("tf_generic_bomb",
+		{
+			targetname = "targetdetonate"
+			Origin = psuedo_passtime_bomb.GetOrigin()
+			damage = 100
+			radius = 50
+			health = 1
+			explode_particle = "rd_robot_explosion"
+			sound = "weapons/loose_cannon_explode.wav"
+			friendlyfire = 1
+		})
+		DoEntFire("targetdetonate", "Detonate", "", 0, null, null)
+		RespawnPTBomb()
+	}
 
-// function bindtoholder()
-// {
-// 	local holderangles	= ptbombholder.EyeAngles()
-// 	local holderorigin	= ptbombholder.EyePosition()
-// 	local holderpitch 	= holderangles.Pitch()
-// 	local scaleamount	= Vector(holderpitch, 0, 0) * 10
+	function RespawnPTBomb() //called manually or if a bomb explodes(hits target or out of bounds)
+	{
+		checkforptbspawn()
+		killptbomb()
+		spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
+	}
+}
 
-// 	ptbombpasslockparent.SetAbsOrigin(holderorigin)
-// 	ptbombpasslock.SetLocalOrigin(Vector(600, 0, -120) - scaleamount)
-// 	ptbombpasslockparent.SetAbsAngles(ptbombholder.GetAbsAngles())
 	
-// 	return -1
-// }
-
-//AddThinkToEnt(ptbombpasslockparent, "bindtoholder")
-//AddThinkToEnt(ptbombpasslockparent, "null")
-		//ptbombpasslockparent.Destroy()
-
-//   velocity = x units per second
-// a velocity of 1000 will move 1000 units per second
-// At an angle of 0, velocity of 1000 and height of the character (approx -60 z) will travel roughly 370 in its given direction. (x / y)
-
-//Given this:
-
-// angle of   0			= 435 -100
-// angle of  90 (89)	= 0
-// angle of -90 (-89)	= 0
-// angle of -45			= 12000
-
-
+InitiateFirstSpawn()
+__CollectGameEventCallbacks(PTBEvents)
