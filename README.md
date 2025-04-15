@@ -2,6 +2,7 @@
 Re-Made Fundamental Aspects Of The Passtime_Ball Entity with VScript To Allow It To Function In MvM Missions (Without Crashing)
 
 #Bugs  
+Still Being Worked ON, Not Final Version  
 .disconnecting with the ball breaks everything  
 .reseting the wave while the ball is held dosent remove the required thinks  
 
