@@ -28,6 +28,7 @@ Load the VScript like you would any other VScript With:
 ///////////////////////////////////////////////////////////////  
 
 # Important Functions  
+====Vital=====  
 --- `InitiateSpawn()` ---  
 : Call This To Spawn The Bomb
 
@@ -36,7 +37,8 @@ Load the VScript like you would any other VScript With:
 
 --- `RespawnPTBomb()` ---  
 : Same As Above But Dosent Cause The Bomb To Explode.
-  
+
+  ====In Case You Need It====  
 --- `dropptbomb(false)` ---   
 : Call This With The (false) Param To Cause Holder To Drop The Ball.    
 
