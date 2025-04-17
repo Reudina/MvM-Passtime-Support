@@ -9,6 +9,8 @@ Script Is Still Experimental, Not Final Version.
 .Disconnecting While Holding The Ball Breaks Everything.  
 .~~Reseting The Wave While The Ball Is Being Held Does Not Remove Thinks As Intended.~~  
 .~~There Is No Check to Prevent Bots From Picking Up The Bomb.~~   
+.Replace Grappeling Hook With Ball.  
+.Add Option To Change Ball Model.  
 .Code Structure Is Messy And Full Of Placeholder Names.  
 
 # How To Use
