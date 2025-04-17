@@ -7,8 +7,8 @@ Re-Made Fundamental Aspects Of The Passtime_Ball Entity with VScript To Allow It
 # Bugs / ToDo  
 Script Is Still Experimental, Not Final Version.    
 .Disconnecting While Holding The Ball Breaks Everything.  
-.Reseting The Wave While The Ball Is Being Held Does Not Remove Thinks As Intended.   
-.There Is No Check to Prevent Bots From Picking Up The Bomb.  
+.~~Reseting The Wave While The Ball Is Being Held Does Not Remove Thinks As Intended.~~  
+.~~There Is No Check to Prevent Bots From Picking Up The Bomb.~~   
 .Code Structure Is Messy And Full Of Placeholder Names.  
 
 # How To Use
