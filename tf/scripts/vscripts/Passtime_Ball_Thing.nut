@@ -15,7 +15,9 @@ printl(__FILE__ + " has loaded");
 
 function resetvalues()  //failsafe to reset any values that would fuck up things if not reset
 {
+	
 	::ptbombholder		<- null
+	AddThinkToEnt(ptbombholder, "null")
 	::defaultbombspawn 	<- Vector(0, 0, 0)
 	::ptbteamcolour		<- 0
 	::ptbtc_as_str		<- "0, 0, 0, 0"
@@ -32,27 +34,12 @@ function InitiateSpawn()
 {
 	resetvalues()
 	checkforptbspawn()
-	//DoEntFire("worldspawn", "RunScriptCode", "checkforptbspawn()", 2, null, null)
 
 	if (arewegood == true)
 	{
 		spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)		
 	}
 }
-
-///////////////TEMP//////////////////////
-function spawnptspawn()
-{
-    SpawnEntityFromTable("info_passtime_ball_spawn",
-    {
-        targetname = "ipbsspawn"
-        TeamNum = 2
-        Origin = Vector(0, 0, 0) //-6336, -112, 45
-        StartDisabled = 0
-
-    })
-}
-////////////////////////////////////
 
 function checkforptbspawn() // Ensure that a valid "Info_Passtime_ball_Spawn" exists
 {
@@ -173,12 +160,15 @@ function testforvalidcarrier()  //ensure carrier can pick up bomb
 {
 	local probablytheholder = Entities.FindByClassnameNearest("player", psuedo_passtime_bomb.GetCenter(), 100)
 
-	if(probablytheholder.GetTeam() == ptbteamcolour)
+	if (probablytheholder.IsBotOfType(1337) == false)
 	{
-		if (probablytheholder.IsStealthed() == false)
+		if(probablytheholder.GetTeam() == ptbteamcolour)
 		{
-			ptbombholder = probablytheholder
-			equipptbomb()
+			if (probablytheholder.IsStealthed() == false)
+			{
+				ptbombholder = probablytheholder
+				equipptbomb()
+			}
 		}
 	}
 }
@@ -253,6 +243,42 @@ function throwptbomb() //throw bomb
 //////////////////////////////////////////////////////////////////////////
 ////////////////		Game Events And Triggers        //////////////////
 /////////////////////////////////////////////////////////////////////////
+function killptbomb() //generic function to kill the bomb and associeted
+{
+	if(psuedo_passtime_bomb.IsValid())
+	{
+		AddThinkToEnt(passtime_bomb_reti1, "null")
+		AddThinkToEnt(passtime_bomb_reti2, "null")
+		passtime_bomb_reti1.Destroy()
+		passtime_bomb_reti2.Destroy()
+		psuedo_passtime_bomb.Destroy()
+	}
+}
+
+function PTBHitTarget() //kills and respawns bomb. call this function when detonating bomb.
+{
+	SpawnEntityFromTable("tf_generic_bomb",
+	{
+		targetname = "targetdetonate"
+		Origin = psuedo_passtime_bomb.GetOrigin()
+		damage = 100
+		radius = 50
+		health = 1
+		explode_particle = "rd_robot_explosion"
+		sound = "weapons/loose_cannon_explode.wav"
+		friendlyfire = 1
+	})
+	DoEntFire("targetdetonate", "Detonate", "", 0, null, null)
+	RespawnPTBomb()
+}
+
+function RespawnPTBomb() //called manually or if a bomb explodes(hits target or out of bounds)
+{
+	checkforptbspawn()
+	killptbomb()
+	spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
+}
+
 ::PTBEvents <- {
 	function OnGameEvent_player_death(params) //drop bomb on holder death
 	{
@@ -267,48 +293,11 @@ function throwptbomb() //throw bomb
 	function OnGameEvent_player_disconnect(params) // drop bomb on player disconnect
 	{
 		if (params.userid == GetPlayerUserID(ptbombholder)){dropptbomb(false)}
-		else{}
 	}
 
 	function OnGameEvent_mvm_wave_complete(params){killptbomb()}
 	function OnGameEvent_mvm_wave_Failed(params){killptbomb()}
 	function OnGameEvent_teamplay_round_win(params){killptbomb()}
-		
-	function killptbomb() //generic function to kill the bomb and associeted
-	{
-		if(psuedo_passtime_bomb.IsValid())
-		{
-			AddThinkToEnt(passtime_bomb_reti1, "null")
-			AddThinkToEnt(passtime_bomb_reti2, "null")
-			passtime_bomb_reti1.Destroy()
-			passtime_bomb_reti2.Destroy()
-			psuedo_passtime_bomb.Destroy()
-		}
-	}
-
-	function PTBHitTarget() //kills and respawns bomb. call this function when detonating bomb.
-	{
-		SpawnEntityFromTable("tf_generic_bomb",
-		{
-			targetname = "targetdetonate"
-			Origin = psuedo_passtime_bomb.GetOrigin()
-			damage = 100
-			radius = 50
-			health = 1
-			explode_particle = "rd_robot_explosion"
-			sound = "weapons/loose_cannon_explode.wav"
-			friendlyfire = 1
-		})
-		DoEntFire("targetdetonate", "Detonate", "", 0, null, null)
-		RespawnPTBomb()
-	}
-
-	function RespawnPTBomb() //called manually or if a bomb explodes(hits target or out of bounds)
-	{
-		checkforptbspawn()
-		killptbomb()
-		spawnptbomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
-	}
 }
 
 	
