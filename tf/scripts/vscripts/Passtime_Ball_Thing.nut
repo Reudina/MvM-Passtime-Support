@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////
 printl(__FILE__ + " has loaded");
 ////////////////////////////////////////////////////////////////////
+PrecacheModel("models/passtime/ball/passtime_ball.mdl")
 
 //globals
 ::PlayerManager <- Entities.FindByClassname(null, "tf_player_manager")
@@ -15,8 +16,8 @@ printl(__FILE__ + " has loaded");
 
 function resetvalues()  //failsafe to reset any values that would fuck up things if not reset
 {
-	
 	::ptbombholder		<- null
+	::HolderID			<- null
 	AddThinkToEnt(ptbombholder, "null")
 	::defaultbombspawn 	<- Vector(0, 0, 0)
 	::ptbteamcolour		<- 0
@@ -104,7 +105,7 @@ function spawnptbomb(ptbspawn_pos, ptb_team, ptb_lockcol) //Spawn the PTBomb
 	})
 
 	passtime_bomb_trigger.AcceptInput("SetParent", "ptbomb", "", null)
-	EntFireByHandle(passtime_bomb_trigger, "Enable", "", 2, null, null)
+	EntFireByHandle(passtime_bomb_trigger, "Enable", "", 0.5, null, null)
 	passtime_bomb_trigger.SetSize(Vector(-25,-25,-25), Vector(25,25,25))
 	passtime_bomb_trigger.SetSolid(2)
 
@@ -136,6 +137,12 @@ function spawnkeylogic(glowcol) //spawn a tf_glow
 		target = "bignet"
 		GlowColor = glowcol
 	})
+	::passtime_bomb_wearable <- Entities.CreateByClassname("tf_wearable");
+	NetProps.SetPropInt(passtime_bomb_wearable, "m_nModelIndex", PrecacheModel("models/passtime/ball/passtime_ball.mdl"));
+	NetProps.SetPropBool(passtime_bomb_wearable, "m_bValidatedAttachedEntity", true);
+	NetProps.SetPropBool(passtime_bomb_wearable, "m_AttributeManager.m_Item.m_bInitialized", true);
+	passtime_bomb_wearable.DispatchSpawn();
+	NetProps.SetPropInt(passtime_bomb_wearable, "m_fEffects", GetPropInt(passtime_bomb_wearable, "m_fEffects") & ~129);
 }
 
 ::GivePlayerPTBallWeapon <- function(player, className, itemID) // PTBall weapon
@@ -146,10 +153,10 @@ function spawnkeylogic(glowcol) //spawn a tf_glow
     NetProps.SetPropBool(ptballweapon, "m_bValidatedAttachedEntity", true)
     ptballweapon.SetTeam(player.GetTeam())
     ptballweapon.DispatchSpawn()
-
+	
     player.Weapon_Equip(ptballweapon)
     player.Weapon_Switch(ptballweapon)
-
+	
     return ptballweapon
 }
 
@@ -177,12 +184,20 @@ function equipptbomb() //equip bomb
 {
 	killptbomb()
 
+	HolderID = GetPlayerUserID(ptbombholder)
+
 	NetProps.SetPropEntity(passtime_bomb_glow, "m_hTarget", ptbombholder)
 	GivePlayerPTBallWeapon(ptbombholder, "tf_weapon_grapplinghook", 1152)
 	ptbombholder.AddCustomAttribute("disable weapon switch", 1, -1 )
 	ptbombholder.AddCustomAttribute("no_attack", 1, -1 )
 	ptbombholder.AddCustomAttribute("cannot disguise", 1, -1 )
-
+	
+	// passtime_bomb_wearable.SetOwner(ptbombholder);
+	// passtime_bomb_wearable.AcceptInput("SetParent", "!activator", ptbombholder, null);
+	// passtime_bomb_wearable.AcceptInput("SetParentAttachment", "effect_hand_R", ptbombholder, ptbombholder)
+	// passtime_bomb_wearable.SetLocalOrigin(Vector(0, 5, 0))
+	// NetProps.SetPropInt(ptballweapon, "m_nRenderMode", 10)
+	
 	ptbombholder.ValidateScriptScope()
 	ptbombholder.GetScriptScope().buttons_last <- 0
 	AddThinkToEnt(ptbombholder, "holderinputthink")
@@ -210,11 +225,18 @@ function holderinputthink()	// read buttons
 
 function dropptbomb(isthrow) // drop bomb
 {
+	HolderID = null
 	local previousheldwep = NetProps.GetPropEntityArray(ptbombholder, "m_hMyWeapons", 0)
 	local dropatholder = ptbombholder.EyePosition()
 	local ispartofthrow = isthrow
 	AddThinkToEnt(ptbombholder, "null")
-	ptballweapon.Destroy()
+	ptballweapon.AcceptInput("kill", "", null, null)
+
+	// passtime_bomb_wearable.SetOwner(null);
+	// passtime_bomb_wearable.SetAbsOrigin(Vector(0, 0, 0));
+	// passtime_bomb_wearable.AcceptInput("SetParent", "", "", null);
+	// passtime_bomb_wearable.AcceptInput("SetParentAttachment", "", null, null)
+
 	ptbombholder.AddCustomAttribute("disable weapon switch", 0, -1 )
 	ptbombholder.AddCustomAttribute("no_attack", 0, -1 )
 	ptbombholder.AddCustomAttribute("cannot disguise", 0, -1 )
@@ -292,7 +314,7 @@ function RespawnPTBomb() //called manually or if a bomb explodes(hits target or 
 
 	function OnGameEvent_player_disconnect(params) // drop bomb on player disconnect
 	{
-		if (params.userid == GetPlayerUserID(ptbombholder)){dropptbomb(false)}
+		if (params.userid == HolderID){dropptbomb(false)}
 	}
 
 	function OnGameEvent_mvm_wave_complete(params){killptbomb()}
@@ -303,3 +325,15 @@ function RespawnPTBomb() //called manually or if a bomb explodes(hits target or 
 	
 InitiateFirstSpawn()
 __CollectGameEventCallbacks(PTBEvents)
+
+
+
+
+//// Animation list for carriers
+
+//stand_passtime
+//run_passtime
+//PASSTIME_throw_begin
+//PASSTIME_throw_cancel
+//PASSTIME_throw_end
+//PASSTIME_throw_middle
