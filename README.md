@@ -27,24 +27,25 @@ Load the VScript like you would any other VScript With:  `InitWaveOutput`
 To Actually Spawn The Ball, Use: `InitiateSpawn()`  
 
 Functions Can Be Called With DoEntFire Or I/O     
-EG. `DoEntFire(``worldspawn``, ``RunScriptCode``, ``InitiateSpawn()``, 0, null, null)`  
-EG. `"OnSTartTouch#1" : "!activatorCallScriptFunctionInitiateSpawn-1-1"`  
+EG. `DoEntFire(``worldspawn``, ``RunScriptCode``, ``PasstimeSupport.InitiateSpawn()``, 0, null, null)`  
+EG. `"OnSTartTouch#1" : "!activatorCallScriptFunctionPasstimeSupport.InitiateSpawn-1-1"`  
 
 
 # Important Functions  
-====Vital=====  
+(Call With "PasstimeSupport." Prefix Like Above Example)   
+  =====Important=====  
 --- `InitiateSpawn()` ---  
 : Call This To Spawn The Bomb
 
 --- `PTBHitTarget()` ---     
 : Call This To Detonate The Bomb And Respawn It.    
 
---- `RespawnPTBomb()` ---  
+--- `ReSpawnPTBomb()` ---  
 : Same As Above But Dosent Cause The Bomb To Explode.
 
   ====In Case You Need It====  
---- `dropptbomb(false)` ---   
+--- `DropPTBall(false)` ---   
 : Call This With The (false) Param To Cause Holder To Drop The Ball.    
 
---- `dropptbomb(true)` ---   
+--- `DropPTBall(true)` ---   
 : Call This With The (True) Param To Cause Holder To Throw The Ball.    
