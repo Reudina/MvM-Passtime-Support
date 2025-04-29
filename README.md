@@ -43,7 +43,10 @@ EG. `"OnSTartTouch#1" : "!activatorCallScriptFunctionPasstimeSupport.InitiateS
 --- `ReSpawnPTBomb()` ---  
 : Same As Above But Dosent Cause The Bomb To Explode.
 
-  ====In Case You Need It====  
+  ====In Case You Need It====     
+--- `SwapBallModel(\`ModelPath\`)`  
+: Call This With Desired Model Path TO Swap The Ball Model(use \` instead of `)  
+ 
 --- `DropPTBall(false)` ---   
 : Call This With The (false) Param To Cause Holder To Drop The Ball.    
 
