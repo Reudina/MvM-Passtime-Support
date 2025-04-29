@@ -27,6 +27,7 @@ printl(__FILE__ + " has loaded");
 	///////////////////////////////////////////////////////////////////////
 	//////////////////   Pre Game Setup ///////////////////////////////////
 	//////////////////////////////////////////////////////////////////////
+
 	firsttime 				= true
 	arewegood				= false
 	HolderID 				= null
@@ -34,6 +35,13 @@ printl(__FILE__ + " has loaded");
 	ptbteamcolour 			= 0
 	ptbtc_as_str			= "0, 0, 0, 0"
 	ptbombholder 			= null
+	ptbmdloverride			= ""
+	
+	function SwapBallModel(model) //swap the model of the ball.
+	{
+		PrecacheModel(model)
+		ptbmdloverride = model
+	}
 
 	function ResetValues() //reset any values that would fuck up things if not reset
 	{
@@ -57,9 +65,9 @@ printl(__FILE__ + " has loaded");
 			{
 				firsttime = false
 				SpawnKeyLogic(ptbtc_as_str)
-				SpawnPTBomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
+				SpawnPTBomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str, ptbmdloverride)
 			}
-			else{SpawnPTBomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)}
+			else{SpawnPTBomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str, ptbmdloverride)}
 		}
 	}
 
@@ -84,7 +92,8 @@ printl(__FILE__ + " has loaded");
 		else{ClientPrint(null, 3, ErrorHeader + "\x07FF3F3F Failed To Find Valid 'Info_Passtime_Ball_Spawn'")}
 	}
 	
-	function SpawnPTBomb(ptbspawn_pos, ptb_team, ptb_lockcol) //Spawn the PTBomb
+	
+	function SpawnPTBomb(ptbspawn_pos, ptb_team, ptb_lockcol, ptb_model) //Spawn the PTBomb
 	{
 
 		::PTS_PTBall <- SpawnEntityFromTable("passtime_ball",
@@ -92,6 +101,7 @@ printl(__FILE__ + " has loaded");
 			targetname	= "ptbomb"
 			Origin 		= ptbspawn_pos
 			TeamNum 	= ptb_team
+			Model 		= ptb_model
 		})
 
 		::PTS_PTTrigger <- SpawnEntityFromTable("trigger_multiple",
@@ -114,6 +124,8 @@ printl(__FILE__ + " has loaded");
 			rendercolor = ptb_lockcol
 		})
 
+		
+
 		::PTS_Reticle_2 <- SpawnEntityFromTable("env_sprite_oriented",
 		{
 			targetname 	= "reticle2"
@@ -129,12 +141,13 @@ printl(__FILE__ + " has loaded");
 		PTS_PTTrigger.SetSize(Vector(-25,-25,-25), Vector(25,25,25))
 		PTS_PTTrigger.SetSolid(2)
 
+	
 		AddThinkToEnt(PTS_Reticle_1, "PTSFollowBomb")
 		AddThinkToEnt(PTS_Reticle_2, "PTSFollowBomb")
 
 		NetProps.SetPropEntity(PTS_PTBall_Glow, "m_hTarget", PTS_PTBall)
 
-		function PTSFollowBomb()
+		::PTSFollowBomb <- function()
 		{
 			PTS_Reticle_1.KeyValueFromVector("origin", PTS_PTBall.GetCenter())
 			PTS_Reticle_2.KeyValueFromVector("origin", PTS_PTBall.GetCenter())
@@ -205,7 +218,7 @@ printl(__FILE__ + " has loaded");
 		ptbombholder.AddCustomAttribute("no_attack", 0, -1 )
 		ptbombholder.AddCustomAttribute("cannot disguise", 0, -1 )
 		ptbombholder.Weapon_Switch(previousheldwep)
-		PasstimeSupport.SpawnPTBomb(dropatholder, ptbteamcolour, ptbtc_as_str)
+		PasstimeSupport.SpawnPTBomb(dropatholder, ptbteamcolour, ptbtc_as_str, ptbmdloverride)
 		NetProps.SetPropEntity(PTS_PTBall_Glow, "m_hTarget", PTS_PTBall)
 
 		if(ispartofthrow == true){PasstimeSupport.ThrowPTBall()}
@@ -293,7 +306,7 @@ printl(__FILE__ + " has loaded");
 	{
 		CheckForPTBSpawn()
 		KillPTBall()
-		SpawnPTBomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str)
+		SpawnPTBomb(defaultbombspawn, ptbteamcolour, ptbtc_as_str, ptbmdloverride)
 	}
 	
 	function OnGameEvent_player_death(params) //drop bomb on holder death

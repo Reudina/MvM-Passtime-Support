@@ -27,7 +27,7 @@ Load the VScript like you would any other VScript With:  `InitWaveOutput`
 To Actually Spawn The Ball, Use: `InitiateSpawn()`  
 
 Functions Can Be Called With DoEntFire Or I/O     
-EG. `DoEntFire(``worldspawn``, ``RunScriptCode``, ``PasstimeSupport.InitiateSpawn()``, 0, null, null)`  
+EG. `EntFire(``worldspawn``, ``RunScriptCode``, ``PasstimeSupport.InitiateSpawn()``)`  
 EG. `"OnSTartTouch#1" : "!activatorCallScriptFunctionPasstimeSupport.InitiateSpawn-1-1"`  
 
 
